@@ -21,68 +21,10 @@
 % 
 
 function out = fft_circ_mask(im)
-
+assert(length(size(im)) == 2); % Make sure image is flat.
 [height, width] = size(im);
-
-% Make sure image is flat:
-assert(length(size(im)) == 2);
-
-r = 2;
-c = 3;
-
 d = max(size(im));
-
-%d = size(im, 1);
-
-figure
-colormap gray;
-subplot(r,c,1);
-imagesc(im);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Original Image');
-
-
-f = fftshift(fft2(im, d, d));
-
-subplot(r,c,2);
-imagesc(log(abs(f)));
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('FFT');
-
-x = (1:d) - d/2 - 0.5
+x = (1:d) - d/2 - 0.5;
 [xx, yy] = meshgrid(x, x);
-mask = (xx .^ 2 + yy .^2) < (d/2)^2;
-
-subplot(r,c,3);
-imagesc(mask);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Mask');
-
-f2 = f .* mask;
-
-subplot(r,c,4);
-imagesc(log(abs(f2)));
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Masked FFT');
-
-out = abs(ifft2(fftshift(f2)));
-
-out = out(1:height, 1:width);
-
-subplot(r,c,5);
-imagesc(abs(out));
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Filtered Image');
-
-subplot(r,c,6);
-imagesc(out - im);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Difference Image');
-
-%  keyboard
+out = abs(ifft2(fft2(im, d, d) .* fftshift((xx .^ 2 + yy .^2) < (d/2)^2)));
+out = out(1:height, 1:width); % crop to original size.

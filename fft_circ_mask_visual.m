@@ -20,69 +20,42 @@
 % along with Neurient.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-function out = fft_circ_mask(im)
+function out = fft_circ_mask_visual(im)
 
 [height, width] = size(im);
-
-% Make sure image is flat:
-assert(length(size(im)) == 2);
-
-r = 2;
-c = 3;
-
+assert(length(size(im)) == 2); % Make sure image is flat.
 d = max(size(im));
-
-%d = size(im, 1);
 
 figure
 colormap gray;
-subplot(r,c,1);
-imagesc(im);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Original Image');
 
+visualize(1, im, 'Original Image');
 
 f = fftshift(fft2(im, d, d));
+visualize(2, log(abs(f)), 'FFT');
 
-subplot(r,c,2);
-imagesc(log(abs(f)));
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('FFT');
-
-x = (1:d) - d/2 - 0.5
+x = (1:d) - d/2 - 0.5;
 [xx, yy] = meshgrid(x, x);
 mask = (xx .^ 2 + yy .^2) < (d/2)^2;
-
-subplot(r,c,3);
-imagesc(mask);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Mask');
+visualize(3, mask, 'Mask');
 
 f2 = f .* mask;
-
-subplot(r,c,4);
-imagesc(log(abs(f2)));
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Masked FFT');
+visualize(4, log(abs(f2)), 'Masked FFT');
 
 out = abs(ifft2(fftshift(f2)));
+out = out(1:height, 1:width); % crop to original size.
+visualize(5, out, 'Filtered Image');
 
-out = out(1:height, 1:width);
+visualize(6, out - im, 'Difference Image');
 
-subplot(r,c,5);
-imagesc(abs(out));
+
+function visualize(sp, im, t)
+subplot(2, 3, sp);
+imagesc(im);
 axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Filtered Image');
 
-subplot(r,c,6);
-imagesc(out - im);
-axis image;
-axis(axis() + [-0.5, 0.5, -0.5, 0.5, 0, 0]);
-title('Difference Image');
+% fix axes in Octave:
+a = axis();
+axis(a(1:4) + [-0.5, 0.5, -0.5, 0.5]);
 
-%  keyboard
+title(t);
