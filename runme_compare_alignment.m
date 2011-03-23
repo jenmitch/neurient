@@ -1,0 +1,125 @@
+% 
+% Copyright (C) 2011 Brown University and Ian Martin
+% 
+% Authors: Jennifer Mitchel <jenmitch@brown.edu>
+%          Ian Martin <martini@alum.mit.edu>
+% 
+% This file is part of Neurient.
+% 
+% Neurient is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 2 of the License, or
+% (at your option) any later version.
+% 
+% Neurient is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with Neurient.  If not, see <http://www.gnu.org/licenses/>.
+% 
+
+function runme_compare_alignment
+
+topdir = ['..' filesep 'Images']; %all images inside the images folder
+savename = ['..' filesep 'Results' filesep 'parallel-alignment.xls'];
+
+surf_types = {'random'};
+%surf_types contains one entry for each condition -- ie "Flat" will combine "Flat1", "Flat2", "Flat3", etc.
+
+surf_names = {'random'}; 
+%surf_names contains one entry for each title to be used on the final plot, in the same order as surf_types
+
+thresh_angle = 22.5;
+
+num_conditions = length(surf_types);
+
+surfaces_to_analyze = 1:num_conditions;
+num_wells = zeros(1,num_conditions);
+aligned = [];
+groups = {};
+data_cell = cell(1, num_conditions);
+
+for s = surfaces_to_analyze 
+    surf = surf_types{s};
+    titlename = surf_names{s};
+	folders = dir([topdir filesep surf '*'])
+	for n=1:length(folders)
+		if(folders(n).isdir)
+		%will pick out each folder that contains the name of the given surface type
+		  folder = folders(n).name;
+		  num_wells(s) = num_wells(s) + 1;
+		  disp(['processing folder ' topdir filesep folder]) 
+  		  angles = analyze_folder([topdir filesep folder]);
+		  percent_aligned = find_alignment(angles, thresh_angle);
+		  aligned = [aligned; percent_aligned];  		  
+		  groups = [groups; surf_types{s}];
+		  data_cell{s} = [data_cell{s}; percent_aligned];
+  		  disp(['processed folder ' topdir filesep folder]) 
+		  disp(' ')
+		end
+	end
+end
+
+data_mat = cell2mat(data_cell);
+
+[p, anovatab, stats]=anova1(aligned,groups);
+c=multcompare(stats,'ctype','bonferroni');
+
+
+figure
+g = unique(groups);
+means = zeros (1, length(g));
+std_err = zeros (1, length(g));
+for i=1:length(g)
+	ind = find (strcmp(g{i},groups) );
+	data = aligned(ind);
+	means(i) = mean(data);
+	std_err(i) = std(data) / sqrt(length(data)) ;
+end
+
+xlswrite(savename,surf_types,'conditions')
+xlswrite(savename, data_mat,'data')
+
+bar(means, .75, 'w', 'linewidth', 2)
+hold on
+errorbar (means, std_err, 'k.', 'linewidth', 2)
+set(gca,'xticklabel',g)
+set(gca,'fontsize',16)
+ylabel('Alignment (%)','fontsize',16)
+saveas(gcf, ['..' filesep 'Results' filesep 'percent-aligned.eps'], 'epsc2')
+
+
+function data = analyze_folder(foldername)
+files = dir(foldername);
+
+angles = [];
+
+for i = 1:length(files)
+    [path, name, ext] = fileparts(files(i).name);
+    if(strcmpi(ext, '.mat')) %is a .mat file
+	imloc = [foldername filesep name ext];
+	load(imloc);
+	results = [trace_data.angles];
+	angles = [angles, results];
+	disp(sprintf('added %s to angles variable',name))
+    end
+ end
+
+%  wrapped_angles = mod(angles,180);
+%  mirrored_angles = wrapped_angles + 180;
+%  data = [wrapped_angles, mirrored_angles];
+
+data = angles;
+
+
+function pa = find_alignment(angles, thresh_angle);
+
+total = length(angles);
+
+pa1 = length(find( (angles>=0) & (angles <= 0+thresh_angle) )); %finds angles a satisfying  0<=a<=theta  
+pa2 = length(find( (angles>=180-thresh_angle) & (angles <= 180+thresh_angle) )); %finds angles a satisfying 180-thetha<=a<=180+theta
+pa3 = length(find( (angles>=360-thresh_angle) & (angles <= 360) )); %finds angles a satisfying 360-theta<=a<=360
+
+pa = 100* (pa1 + pa2 + pa3) / total ; 
