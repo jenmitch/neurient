@@ -87,6 +87,8 @@ xs = zeros(maxcount,1);
 ys = zeros(maxcount,1);
 angles = zeros(1,maxcount);
 
+visited = zeros(L, W); % keeps track of which coordinates we've already visited.
+
 for i = 1:nseeds
 
 	xi=seeds(i,1);
@@ -95,6 +97,8 @@ for i = 1:nseeds
 	violations = 0;
 
 	for count=1:maxcount
+		visited(yi, xi) = 1;
+
 	   xs(count) = xi;
 	   ys(count) = yi;    
 	   
@@ -125,7 +129,8 @@ for i = 1:nseeds
 	  
 		thresh_violation   = (im(yi, xi) < thresh);
 		boundary_violation = boundary_check(yi, xi);
-		this_violation = thresh_violation +  boundary_violation;
+		retrace_violation  = visited(yi, xi);
+		this_violation     = thresh_violation +  boundary_violation + retrace_violation;
 
 		if (this_violation)
 			violations = violations + this_violation;
