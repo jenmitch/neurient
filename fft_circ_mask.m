@@ -26,5 +26,5 @@ assert(length(size(im)) == 2); % Make sure image is flat.
 d = max(size(im));
 x = (1:d) - d/2 - 0.5;
 [xx, yy] = meshgrid(x, x);
-out = abs(ifft2(fft2(im, d, d) .* fftshift((xx .^ 2 + yy .^2) < (d/2)^2)));
+out = real(ifft2(fft2(im, d, d) .* fftshift((xx .^ 2 + yy .^2) < (d/2)^2)));
 out = out(1:height, 1:width); % crop to original size.

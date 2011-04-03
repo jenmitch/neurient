@@ -42,7 +42,7 @@ visualize(3, mask, 'Mask');
 f2 = f .* mask;
 visualize(4, log(abs(f2)), 'Masked FFT');
 
-out = abs(ifft2(fftshift(f2)));
+out = real(ifft2(fftshift(f2)));
 out = out(1:height, 1:width); % crop to original size.
 visualize(5, out, 'Filtered Image');
 
