@@ -20,10 +20,17 @@
 % along with Neurient.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-function imgpost = imrotate_smart(imgpre, theta)
+function imgpost = imrotate_smart(imgpre, theta, method, bbox)
+
+if (nargin < 4)
+	bbox = 'crop';
+	if (nargin < 3)
+		method = 'bilinear';
+	end
+end
 
 flat = imgpre(:);
 minval = min(flat);
 maxval = max(flat);
 range = (maxval - minval);
-imgpost = (imrotate((imgpre - minval) / range, theta, 'bilinear', 'crop') * range) + minval;
+imgpost = (imrotate((imgpre - minval) / range, theta, method, bbox) * range) + minval;
