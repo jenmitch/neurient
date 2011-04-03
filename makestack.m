@@ -63,7 +63,7 @@ crop_cols = hpad + (1:W);
 
 
 for i = 1:ntheta
-       theta = (i - 1) * step + 0.5;
+       theta = (i - 1) * step;
        disp(sprintf('Rotating by %g.', theta));
        rotated = imrotate_smart(impad, theta);
        
