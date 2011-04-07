@@ -121,12 +121,15 @@ for i = 1:nseeds
 	  
 		angles(count) = direction;
 	  
+		x0 = xi;
+		y0 = yi;
+
 		xi = xi + step_cache_u(ind_top);
 		yi = yi + step_cache_v(ind_top); 
 	  
 		xi = min(max(xi, 1), W);
 		yi = min(max(yi, 1), L);
-	  
+
 		thresh_violation   = (im(yi, xi) < thresh);
 		boundary_violation = boundary_check(yi, xi);
 		retrace_violation  = visited(yi, xi);
@@ -138,7 +141,9 @@ for i = 1:nseeds
 		else
 			violations = 0;
 		end
-	
+
+		visited = visited + draw_line_segment(W,L, x0, y0, xi, yi, 2*r + 3);
+
 	end %ends while(violations < 4) -- all steps along ith seed line
 
 	trace_data(i).xs     = xs(1:count); 
