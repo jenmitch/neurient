@@ -25,7 +25,7 @@ function imgpost = imrotate_smart(imgpre, theta, method, bbox)
 if (nargin < 4)
 	bbox = 'crop';
 	if (nargin < 3)
-		method = 'bilinear';
+		method = 'Fourier';
 	end
 end
 
@@ -33,4 +33,22 @@ flat = imgpre(:);
 minval = min(flat);
 maxval = max(flat);
 range = (maxval - minval);
-imgpost = (imrotate((imgpre - minval) / range, theta, method, bbox) * range) + minval;
+
+% Force the image intensity into the 0..1 range.
+% This is required because imrotate behaves differently with values outside this range.
+norm_im = (imgpre - minval) / range;
+
+if (strcmp(method, 'Fourier'))
+	if (exist('OCTAVE_VERSION'))
+		% Use Octave's built-in imrotate function:
+		rotated = imrotate(norm_im, theta, method, bbox);
+	else
+		% Use custom imrotate function (which only accepts two parameters):
+		rotated = imrotate_Fourier(norm_im, theta);
+	end
+else
+	% For non-Fourier methods, use the built-in imrotate function:
+	rotated = imrotate(norm_im, theta, method, bbox);
+end
+
+imgpost = rotated * range + minval; % Restore the original image intensity range.
