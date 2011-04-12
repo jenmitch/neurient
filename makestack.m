@@ -63,10 +63,10 @@ step = 360 / ntheta;
 %thetas = thetas + step/2;
 
 kernel = [-1, -2, 0, 2, 1, zeros(1, 1 + 2*r), 1, 2, 0, -2, -1]';
+kernel_2d = repmat(kernel / k, [1, k]); % divide by k so we get means instead of sums.
 
 stack = zeros(L, W, ntheta);
 
-shifteds = zeros(d, d, k);
 crop_rows = vpad + (1:L);
 crop_cols = hpad + (1:W);
 
@@ -81,16 +81,8 @@ for i = 1:ntheta
 %         rotated = imresize(rotated, 0.5, 'box');
 
        disp('Filter2ing.');
-       filtered = filter2(kernel, rotated);
+	medians = filter2(kernel_2d, rotated);
 
-       disp('Circshifting.');
-       for j = 1:k
-               shifteds(:,:,j) = circshift(filtered, [0, -(j-1)]);
-       end
-
-       disp('Computing medians.');
-	%medians = median(shifteds, 3);
-	medians = mean(shifteds, 3);
        disp(sprintf('Rotating by %g.', -theta));
        uncropped = imrotate_smart(medians, -theta);
        disp('Cropping');
@@ -101,12 +93,10 @@ end
 if 1
   sums = zeros(1,ntheta);
   for i = 1:ntheta
-%      margin = ceil(max(k, length(kernel)) / 2);
-    margin = 30;
-    rows = ((1:L) > margin) & ((1:L) < (L-margin));
-    cols = ((1:W) > margin) & ((1:W) < (W-margin));
+    margin = ceil((max(k, length(kernel)) - 1) / 2);
+    rows = ((1:L) > margin) & ((1:L) <= (L-margin));
+    cols = ((1:W) > margin) & ((1:W) <= (W-margin));
     sums(i) = sum(sum(stack(rows,cols,i).^2));
-    stack(:,:,i) = stack(:,:,i) / sqrt(sums(i)); 
   end
   %  
   figure
