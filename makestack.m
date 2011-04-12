@@ -22,6 +22,8 @@
 
 function stack = makestack(im, ntheta, r, k)
 
+use_fft = 1;
+
 if (nargin < 4)
 	k = 10;
 	if (nargin < 3)
@@ -36,6 +38,8 @@ assert(size(im, 3) == 1);
 
 [L,W] = size(im);
 
+
+
 d = ceil(sqrt(L^2 + W^2));
 if (mod(d,2)) %odd
  d=d+1;
@@ -47,6 +51,11 @@ hpad = ceil((d-W)/2);
 impad = [zeros(vpad,d);
 		zeros(L,hpad), im, zeros(L,hpad);
 		zeros(vpad,d)];
+
+if use_fft
+  impad = fft_circ_mask(impad);
+end
+
 
 step = 360 / ntheta;
 
@@ -61,12 +70,16 @@ shifteds = zeros(d, d, k);
 crop_rows = vpad + (1:L);
 crop_cols = hpad + (1:W);
 
+%         disp('enlarging');
+%         impad_2x = imresize (impad, 2, 'nearest');
 
 for i = 1:ntheta
        theta = (i - 1) * step;
        disp(sprintf('Rotating by %g.', theta));
        rotated = imrotate_smart(impad, theta);
-       
+%         disp('reducing');
+%         rotated = imresize(rotated, 0.5, 'box');
+
        disp('Filter2ing.');
        filtered = filter2(kernel, rotated);
 
@@ -84,6 +97,25 @@ for i = 1:ntheta
        stack(:,:,i) = uncropped(crop_rows, crop_cols);
        disp(sprintf('Finished angle %d\n', i));
 end
+
+if 1
+  sums = zeros(1,ntheta);
+  for i = 1:ntheta
+%      margin = ceil(max(k, length(kernel)) / 2);
+    margin = 30;
+    rows = ((1:L) > margin) & ((1:L) < (L-margin));
+    cols = ((1:W) > margin) & ((1:W) < (W-margin));
+    sums(i) = sum(sum(stack(rows,cols,i).^2));
+    stack(:,:,i) = stack(:,:,i) / sqrt(sums(i)); 
+  end
+  %  
+  figure
+  plot(0:10:350, sums,'o-')
+end
+%  keyboard
+
+%  stack = stack ./ sum(sum(stack,1),2);
+
 
 %original:
 %  for i = 1:ntheta

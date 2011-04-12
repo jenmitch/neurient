@@ -24,8 +24,8 @@ function trace_data = improcess(imname, thresh_factor)
 
 modseed = 500;
 s=3;
-r=1;
-k=10;
+r=0;
+k=15;
 nthetas = 36;
 maxcount=100;
 
@@ -83,11 +83,23 @@ boundary_check = (xx < b) | (xx > W-b) | (yy < b) | (yy > L-b);
 clear xx yy b;
 
 % Initialize buffers:
-xs = zeros(maxcount,1);
-ys = zeros(maxcount,1);
+xs = zeros(1,maxcount);
+ys = zeros(1,maxcount);
 angles = zeros(1,maxcount);
 
 visited = zeros(L, W); % keeps track of which coordinates we've already visited.
+
+% Generate stamps for all possible line segments:
+thickness = 2 * r + 3;                     % Check this.
+dim = ceil(s + thickness) + 2;             % Add a one-pixel margin to each side.
+if (mod(dim, 2) == 0), dim = dim + 1; end; % force an odd number.
+segment_stamps = zeros(dim, dim, nthetas);
+center = ceil(dim / 2);
+for i=1:nthetas
+	theta = 2 * pi * (i - 1) / nthetas;
+	segment_stamps(:,:,i) = draw_line_segment(dim, dim, center, center, center + s * cos(theta), center + s * sin(theta), thickness);
+end
+stamp_offsets = (1:dim) - center;
 
 for i = 1:nseeds
 
@@ -130,9 +142,10 @@ for i = 1:nseeds
 		xi = min(max(xi, 1), W);
 		yi = min(max(yi, 1), L);
 
-		thresh_violation   = (im(yi, xi) < thresh);
+		thresh_violation   = (im(yi, xi) < thresh) / 4;
 		boundary_violation = boundary_check(yi, xi);
-		retrace_violation  = visited(yi, xi);
+%  		retrace_violation = 0;
+		retrace_violation  = min(visited(yi, xi), 1) * 4;
 		this_violation     = thresh_violation +  boundary_violation + retrace_violation;
 
 		if (this_violation)
@@ -142,7 +155,11 @@ for i = 1:nseeds
 			violations = 0;
 		end
 
-		visited = visited + draw_line_segment(W,L, x0, y0, xi, yi, 2*r + 3);
+		rows = y0 + stamp_offsets;
+		cols = x0 + stamp_offsets;
+		if (all((rows >= 1) & (rows <= L)) & all((cols >= 1) & (cols <= W))) % Not sure if this condition is necessary.
+			visited(rows, cols) = visited(rows, cols) + segment_stamps(:,:,ind_top);
+		end
 
 	end %ends while(violations < 4) -- all steps along ith seed line
 
@@ -157,6 +174,25 @@ end
 
 end
 
+if 1
+figure
+rgb_im = zeros(L, W, 3);
+mx = max(max(im));
+%  im(im>thresh) = mx;
+%  rgb_im(:,:,1) = im/mx;
+rgb_im(:,:,1) = min(im * 3, 1);
+%  visted(visited>1) = 1;
+rgb_im(:,:,2) = min(visited,1);
+image(rgb_im)
+%  keyboard;
+
+%  imagesc(visited)
+axis image
+%  axis ij
+%  colormap gray
+axis equal
+title(basename)
+end
 
 %  function ind = find_max(values, shift, width)
 %  	shift_ind = circshift((1:length(values))', shift);
