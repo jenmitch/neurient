@@ -25,7 +25,9 @@ stackname = sprintf('%s-stack-n%d-r%d-k%d.mat', basename, ntheta, r, k);
 if (exist(stackname, 'file'))
 	data = load(stackname);
 	stack = data.stack;
+	disp(sprintf('Loaded "%s".', stackname));
 else
+	disp(sprintf('Generating "%s"....', stackname));
 	stack = makestack(im, ntheta, r, k);
 %  	save(stackname, 'stack');
 end
