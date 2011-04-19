@@ -63,6 +63,8 @@ step = 360 / ntheta;
 %thetas = thetas + step/2;
 
 kernel = [-1, -2, 0, 2, 1, zeros(1, 1 + 2*r), 1, 2, 0, -2, -1]';
+kern_width = length(kernel);
+
 kernel_2d = repmat(kernel / k, [1, k]); % divide by k so we get means instead of sums.
 
 stack = zeros(L, W, ntheta);
@@ -82,6 +84,11 @@ for i = 1:ntheta
 
        disp('Filter2ing.');
 	medians = filter2(kernel_2d, rotated);
+	
+	% Now the 2D kernel is centered around the trace coordinate, but we want
+	% to align the "baseline" of the kernel to the trace coordinate instead,
+	% so we circshift all of the responses to get the equivalent effect:
+	medians = circshift(medians, [0, -floor(k/2)]);
 
        disp(sprintf('Rotating by %g.', -theta));
        uncropped = imrotate_smart(medians, -theta);
@@ -92,10 +99,10 @@ end
 
 if 1
   sums = zeros(1,ntheta);
+	margin = ceil(norm([k, floor(kern_width/2)])); % Diagonal length from trace coordinate to far corner of the 2D kernel
+	rows = ((1:L) > margin) & ((1:L) <= (L-margin));
+	cols = ((1:W) > margin) & ((1:W) <= (W-margin));
   for i = 1:ntheta
-    margin = ceil((max(k, length(kernel)) - 1) / 2);
-    rows = ((1:L) > margin) & ((1:L) <= (L-margin));
-    cols = ((1:W) > margin) & ((1:W) <= (W-margin));
     sums(i) = sum(sum(stack(rows,cols,i).^2));
   end
   %  

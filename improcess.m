@@ -22,6 +22,8 @@
 
 function trace_data = improcess(imname, thresh_factor)
 
+global interactive_trace;
+
 modseed = 500;
 s=3;
 r=0;
@@ -30,7 +32,7 @@ nthetas = 36;
 maxcount=100;
 
 kern_width = 1 + 2 * (r + 5);
-b = max(kern_width, k); % boundary size
+b = ceil(norm([k, floor(kern_width/2)])); % Diagonal length from trace coordinate to far corner of the 2D kernel
 
 [path,basename,ext] = fileparts(imname);
 %  stackname = [basename '-stack.mat'];
@@ -57,6 +59,7 @@ disp('loaded stack')
 
 indices = (1:nthetas)';
 thetas = (indices - 1) * 360 / nthetas;
+thetas_radians = (indices - 1) * 2*pi / nthetas;
 
 [seeds, thresh] = findseeds(im, thresh_factor) ;
 nseeds = size(seeds,1);
@@ -74,8 +77,10 @@ window_size = 1 + 2*shift_range;
 window_ind  = 1:window_size;
 
 % Create step vector lookup table:
-step_cache_u = round(s * cos(thetas * pi /180));
-step_cache_v = round(s * sin(thetas * pi /180));
+unit_vector_x = cos(thetas_radians);
+unit_vector_y = sin(thetas_radians);
+step_cache_u = round(s * unit_vector_x);
+step_cache_v = round(s * unit_vector_y);
 
 % Create boundary-checking lookup table:
 [xx,yy] = meshgrid(1:W, 1:L);
@@ -96,10 +101,21 @@ if (mod(dim, 2) == 0), dim = dim + 1; end; % force an odd number.
 segment_stamps = zeros(dim, dim, nthetas);
 center = ceil(dim / 2);
 for i=1:nthetas
-	theta = 2 * pi * (i - 1) / nthetas;
-	segment_stamps(:,:,i) = draw_line_segment(dim, dim, center, center, center + s * cos(theta), center + s * sin(theta), thickness);
+	segment_stamps(:,:,i) = draw_line_segment( ...
+		dim, ...
+		dim, ...
+		center, ...
+		center, ...
+		center + s * cos(thetas_radians(i)), ...
+		center + s * sin(thetas_radians(i)), ...
+		thickness);
 end
 stamp_offsets = (1:dim) - center;
+
+if (interactive_trace)
+	handle = figure();
+	zoom_param = 25;
+end
 
 for i = 1:nseeds
 
@@ -121,16 +137,56 @@ for i = 1:nseeds
 			%ind_top = find_max(meds, shift_range + 1 - ind_top, window_size);
 			
 			shift_ind = circshift(indices, shift_range + 1 - ind_top);
-			[y, index] = max(meds(shift_ind(window_ind)));
+			ind_subset = shift_ind(window_ind);
+			[y, index] = max(meds(ind_subset));
 			ind_top = shift_ind(index);
 			
 			direction = thetas(ind_top);
 		else %initial direction -- no restriction
-			[y, ind_top] = max(meds);
+			ind_subset = 1:nthetas;
+			[y, ind_top] = max(meds(ind_subset));
 			direction =  thetas(ind_top);
 			trace_data(i).init_dir = direction;
 		end
 	  
+		if (interactive_trace & (i > nseeds/3)) % Skip the first third of the seeds so we're not stuck against the image border.
+			figure(handle);
+			subplot(1,2,1);
+			hold off;
+			imagesc(im);
+			hold on;
+			colormap gray;
+			axis image;
+			
+			% Plot colored radii:
+			for n=1:nthetas
+				if (n == ind_top)
+					style = 'r-';
+				elseif (any(n == ind_subset))
+					style = 'g-';
+				else
+					style = 'b-';
+				end
+				scale = 20 * max(meds(n), 0);
+				plot(xi + [0, scale * unit_vector_x(n)], yi + [0, scale * unit_vector_y(n)], style);
+			end
+			
+			plot(xs(1:count), ys(1:count), 'y.-');                                      % Show trace path in yellow.
+			plot(xi, yi, 'ro');                                                         % Indicate center coordinate.
+			axis([xi - zoom_param, xi + zoom_param, yi - zoom_param, yi + zoom_param]); % Zoom around center coordinate.
+			
+			subplot(1,2,2);
+			hold off;
+			plot(thetas, zeros(size(thetas)), 'k-');                                    % Show zero-response threshold in black.
+			hold on;
+			plot(thetas, meds, 'bo-');                                                  % Show responses vs. angle.
+			plot(thetas(ind_subset), meds(ind_subset), 'go');                           % Indicate window of interest in green.
+			plot(direction, meds(ind_top), 'ro');                                       % Indicate selected direction in red.
+
+			disp('Press any key to continue trace....');
+			pause;
+		end
+
 		angles(count) = direction;
 	  
 		x0 = xi;
