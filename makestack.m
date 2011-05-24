@@ -107,7 +107,7 @@ if 1
   end
   %  
   figure
-  plot(0:10:350, sums,'o-')
+  plot((0:(ntheta-1)) * 360/ntheta, sums,'o-')
 end
 %  keyboard
 
