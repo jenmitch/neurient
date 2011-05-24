@@ -22,6 +22,10 @@
 
 function trace_data = improcess(imname, thresh_factor)
 
+if (nargin < 2)
+	thresh_factor = 2;
+end
+
 global interactive_trace;
 
 modseed = 500;
