@@ -124,6 +124,8 @@ for i = 1:nseeds
 	trace_data(i).seed = [xi, yi];
 	violations = 0;
 
+    if ( not(boundary_check(yi, xi)) ) %is the seed point on the border?
+
 	for count=1:maxcount
 		visited(yi, xi) = 1;
 
@@ -198,8 +200,8 @@ for i = 1:nseeds
 		xi = min(max(xi, 1), W);
 		yi = min(max(yi, 1), L);
 
-		thresh_violation   = (im(yi, xi) < thresh) / 4;
-		boundary_violation = boundary_check(yi, xi);
+		thresh_violation   = (im(yi, xi) < thresh) ;
+		boundary_violation = boundary_check(yi, xi) * 4;
 %  		retrace_violation = 0;
 		retrace_violation  = min(visited(yi, xi), 1) * 4;
 		this_violation     = thresh_violation +  boundary_violation + retrace_violation;
@@ -227,6 +229,7 @@ if(mod(i,modseed)==0)
 disp(sprintf('finished seed number %d of %d',i, nseeds))
 end
 
+  end
 
 end
 
