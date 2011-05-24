@@ -32,7 +32,12 @@ modseed = 500;
 s=3;
 r=0;
 k=15;
-nthetas = 36;
+
+global nthetas;
+if (isempty(nthetas))
+	nthetas = 36;
+end;
+
 maxcount=100;
 
 kern_width = 1 + 2 * (r + 5);
