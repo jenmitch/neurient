@@ -32,4 +32,5 @@ end
 kern_width = 11 + 2 * r;
 margin = ceil(norm([k, floor(kern_width/2)]));
 
-out = bullseye(3, 6 + 2*r, d, d/2 - margin);
+thickness = 6 + 2*r;
+out = bullseye(k - thickness/2, thickness, d, d/2 - margin);
