@@ -20,16 +20,16 @@
 % along with Neurient.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-function out = bullseye(skip, thickness, d)
-% e.g. im = bullseye(3, 6, 256);
+function out = bullseye_trace(d, r, k)
 
-r = 0;
-k = 15;
+if (nargin < 3)
+	k = 15;
+	if (nargin < 2)
+		r = 0;
+	end
+end
+
 kern_width = 11 + 2 * r;
 margin = ceil(norm([k, floor(kern_width/2)]));
 
-coords = (1:d) - d/2 - 0.5;
-[xx, yy] = meshgrid(coords, coords);
-r = sqrt(xx.^2 + yy.^2);
-period = thickness + skip;
-out = and(mod(r, period) > skip, r < (d/2 - margin));
+out = bullseye(3, 6 + 2*r, d, d/2 - margin);
