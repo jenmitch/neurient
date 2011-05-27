@@ -135,7 +135,10 @@ for i = 1:nseeds
 
     if ( not(boundary_check(yi, xi)) ) %is the seed point on the border?
 
-	for count=1:maxcount
+	%for count=1:maxcount
+	count = 1;
+	while (1);
+	
 		visited(yi, xi) = 1;
 
 	   xs(count) = xi;
@@ -228,6 +231,7 @@ for i = 1:nseeds
 			visited(rows, cols) = visited(rows, cols) + segment_stamps(:,:,ind_top);
 		end
 
+		count = count + 1;
 	end %ends while(violations < 4) -- all steps along ith seed line
 
 	trace_data(i).xs     = xs(1:count); 
