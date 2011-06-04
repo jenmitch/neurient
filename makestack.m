@@ -75,6 +75,8 @@ crop_cols = hpad + (1:W);
 %         disp('enlarging');
 %         impad_2x = imresize (impad, 2, 'nearest');
 
+start_time = tic();
+
 for i = 1:ntheta
        theta = (i - 1) * step;
        disp(sprintf('Rotating by %g.', theta));
@@ -94,7 +96,10 @@ for i = 1:ntheta
        uncropped = imrotate_smart(medians, -theta);
        disp('Cropping');
        stack(:,:,i) = uncropped(crop_rows, crop_cols);
-       disp(sprintf('Finished angle %d\n', i));
+
+       minutes_elapsed = double(tic() - start_time) / 1e6 / 60;
+       time_remaining = minutes_elapsed * (ntheta - i) / i;
+       disp(sprintf('Finished angle %d/%d, ETA %.2f minutes.\n', i, ntheta, time_remaining));
 end
 
 if 1
