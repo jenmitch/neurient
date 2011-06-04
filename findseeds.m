@@ -24,7 +24,6 @@ function [seeds, thresh] = findseeds (im,thresh_factor)
 
 
 [L,W] = size(im);
-d = ceil(sqrt(L^2 + W^2));
 
 g = 20;
 
