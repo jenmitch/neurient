@@ -40,17 +40,16 @@ assert(size(im, 3) == 1);
 
 
 
-d = ceil(sqrt(L^2 + W^2));
-if (mod(d,2)) %odd
- d=d+1;
-end
+d = sqrt(L^2 + W^2);
 
 vpad = ceil((d-L)/2);
 hpad = ceil((d-W)/2);
 
-impad = [zeros(vpad,d);
-		zeros(L,hpad), im, zeros(L,hpad);
-		zeros(vpad,d)];
+impad = [
+	zeros(vpad, hpad + W + hpad);
+	zeros(L,hpad), im, zeros(L,hpad);
+	zeros(vpad, hpad + W + hpad)
+];
 
 if use_fft
   impad = fft_circ_mask(impad);
