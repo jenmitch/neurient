@@ -21,13 +21,13 @@
 % 
 
 
-thresh_factor = 2;
+thresh_factor = 4;
 topdir = ['..' filesep 'Images']; %all images inside the images folder
 
-surf_types = {'random'};
+surf_types = {'Test'};
 %surf_types contains one entry for each condition -- ie "Flat" will combine "Flat1", "Flat2", "Flat3", etc.
 
-surf_names = {'random'}; 
+surf_names = {'Test'}; 
 %surf_names contains one entry for each title to be used on the final plot, in the same order as surf_types
 
 folders = dir(topdir);
