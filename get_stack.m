@@ -29,5 +29,5 @@ if (exist(stackname, 'file'))
 else
 	disp(sprintf('Generating "%s"....', stackname));
 	stack = makestack(im, ntheta, r, k);
-%  	save(stackname, 'stack');
+  	save(stackname, 'stack');
 end
