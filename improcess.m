@@ -169,7 +169,7 @@ for i = 1:nseeds
 			trace_data(i).init_dir = direction;
 		end
 	  
-		if (interactive_trace & (i > nseeds/3)) % Skip the first third of the seeds so we're not stuck against the image border.
+		if (interactive_trace && (i > nseeds/3)) % Skip the first third of the seeds so we're not stuck against the image border.
 			figure(handle);
 			subplot(1,2,1);
 			hold off;
@@ -233,7 +233,7 @@ for i = 1:nseeds
 
 		rows = y0 + stamp_offsets;
 		cols = x0 + stamp_offsets;
-		if (all((rows >= 1) & (rows <= L)) & all((cols >= 1) & (cols <= W))) % Not sure if this condition is necessary.
+		if (all((rows >= 1) & (rows <= L)) && all((cols >= 1) & (cols <= W))) % Not sure if this condition is necessary.
 			visited(rows, cols) = visited(rows, cols) + segment_stamps(:,:,ind_top);
 		end
 
