@@ -1,5 +1,8 @@
 
-ALL += sample-image.png
+ALL += neurient.zip
+
+ZIP += *.m
+ZIP += sample-image.png
 
 all: $(ALL)
 
@@ -22,3 +25,6 @@ sample-image.png: 100305CLF_Ave2\ red\ 5\ 5.tif
 
 neurient_demo: neurient_demo.m sample-image.png
 	octave --persist $<
+
+neurient.zip: $(ZIP)
+	zip -9 $@ $^
