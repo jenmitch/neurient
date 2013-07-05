@@ -1,10 +1,9 @@
 
-ALL += sample-image.pgm
+ALL += sample-image.png
 
 all: $(ALL)
 
 CLEAN += $(ALL)
-CLEAN += Melt_electrospun_fibers.jpg
 CLEAN += *~
 CLEAN += *stack*.mat
 
@@ -17,8 +16,9 @@ EDIT += *.m
 edit:
 	kate -n $(EDIT) 2>/dev/null & disown
 
-Melt_electrospun_fibers.jpg:
-	wget http://upload.wikimedia.org/wikipedia/commons/3/3b/Melt_electrospun_fibers.jpg
+sample-image.png: 100305CLF_Ave2\ red\ 5\ 5.tif
+	which convert || sudo apt-get install imagemagick
+	convert "$^" -colorspace RGB -channel Red -colorspace Gray -auto-level "$@"
 
-sample-image.pgm: Melt_electrospun_fibers.jpg
-	convert $^ -scale 50% $@
+neurient_demo: neurient_demo.m sample-image.png
+	octave --persist $<

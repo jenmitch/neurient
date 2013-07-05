@@ -22,7 +22,7 @@
 
 more off; % for Octave.
 
-imname = 'sample-image.pgm'
+imname = 'sample-image.png'
 
 nthetas       = 36;
 thresh_factor =  3
