@@ -9,6 +9,7 @@ all: $(ALL)
 CLEAN += $(ALL)
 CLEAN += *~
 CLEAN += *stack*.mat
+CLEAN += sample-image.png
 
 clean:
 	rm -f $(CLEAN)
@@ -21,7 +22,7 @@ edit:
 
 sample-image.png: 100305CLF_Ave2\ red\ 5\ 5.tif
 	which convert || sudo apt-get install imagemagick
-	convert "$^" -colorspace RGB -channel Red -colorspace Gray -auto-level "$@"
+	convert "$^" -fx "r + g + b" -auto-level "$@"
 
 neurient_demo: neurient_demo.m sample-image.png
 	octave --persist $<
