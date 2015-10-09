@@ -44,7 +44,7 @@ if (strcmp(method, 'Fourier'))
 		rotated = imrotate(norm_im, theta, method, bbox);
 	else
 		% Use custom imrotate function (which only accepts two parameters):
-		rotated = imrotate_Fourier(norm_im, theta);
+		rotated = RotateImage(norm_im, theta);
 	end
 else
 	% For non-Fourier methods, use the built-in imrotate function:

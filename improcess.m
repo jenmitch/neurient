@@ -20,7 +20,7 @@
 % along with Neurient.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-function trace_data = improcess(imname, thresh_factor)
+function [trace_data, visited, stack] = improcess(imname, thresh_factor)
 
 if (nargin < 2)
 	thresh_factor = 2;
@@ -46,7 +46,13 @@ b = ceil(norm([k, floor(kern_width/2)])); % Diagonal length from trace coordinat
 [path,basename,ext] = fileparts(imname);
 %  stackname = [basename '-stack.mat'];
 
-[im,map] = imread(imname);
+% Octave complains if we request a color map but the image doesn't have one.
+try
+	[im, map] = imread(imname);
+catch
+	im = imread(imname);
+	map = [];
+end
 
 if(length(map)==0)
 	im = double(im);
@@ -163,7 +169,7 @@ for i = 1:nseeds
 			trace_data(i).init_dir = direction;
 		end
 	  
-		if (interactive_trace & (i > nseeds/3)) % Skip the first third of the seeds so we're not stuck against the image border.
+		if (interactive_trace && (i > nseeds/3)) % Skip the first third of the seeds so we're not stuck against the image border.
 			figure(handle);
 			subplot(1,2,1);
 			hold off;
@@ -227,7 +233,7 @@ for i = 1:nseeds
 
 		rows = y0 + stamp_offsets;
 		cols = x0 + stamp_offsets;
-		if (all((rows >= 1) & (rows <= L)) & all((cols >= 1) & (cols <= W))) % Not sure if this condition is necessary.
+		if (all((rows >= 1) & (rows <= L)) && all((cols >= 1) & (cols <= W))) % Not sure if this condition is necessary.
 			visited(rows, cols) = visited(rows, cols) + segment_stamps(:,:,ind_top);
 		end
 
@@ -244,26 +250,6 @@ end
 
   end
 
-end
-
-if 1
-figure
-rgb_im = zeros(L, W, 3);
-mx = max(max(im));
-%  im(im>thresh) = mx;
-%  rgb_im(:,:,1) = im/mx;
-rgb_im(:,:,1) = min(im * 3, 1);
-%  visted(visited>1) = 1;
-rgb_im(:,:,2) = min(visited,1);
-image(rgb_im)
-%  keyboard;
-
-%  imagesc(visited)
-axis image
-%  axis ij
-%  colormap gray
-axis equal
-title(basename)
 end
 
 %  function ind = find_max(values, shift, width)
